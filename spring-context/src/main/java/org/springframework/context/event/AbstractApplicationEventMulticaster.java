@@ -185,7 +185,7 @@ public abstract class AbstractApplicationEventMulticaster
 		if (this.beanClassLoader == null ||
 				(ClassUtils.isCacheSafe(event.getClass(), this.beanClassLoader) &&
 						(sourceType == null || ClassUtils.isCacheSafe(sourceType, this.beanClassLoader)))) {
-			// Fully synchronized building and caching of a ListenerRetriever
+			// 同步操作，用来处理缓存
 			synchronized (this.retrievalMutex) {
 				retriever = this.retrieverCache.get(cacheKey);
 				if (retriever != null) {
@@ -194,6 +194,7 @@ public abstract class AbstractApplicationEventMulticaster
 				retriever = new ListenerRetriever(true);
 				Collection<ApplicationListener<?>> listeners =
 						retrieveApplicationListeners(eventType, sourceType, retriever);
+				// 将监听器存放对象放入缓存中
 				this.retrieverCache.put(cacheKey, retriever);
 				return listeners;
 			}
@@ -222,6 +223,7 @@ public abstract class AbstractApplicationEventMulticaster
 			listenerBeans = new LinkedHashSet<>(this.defaultRetriever.applicationListenerBeans);
 		}
 		for (ApplicationListener<?> listener : listeners) {
+			// 判断监听器是否支持处理事件类型与来源
 			if (supportsEvent(listener, eventType, sourceType)) {
 				if (retriever != null) {
 					retriever.applicationListeners.add(listener);
@@ -257,6 +259,7 @@ public abstract class AbstractApplicationEventMulticaster
 			}
 		}
 		AnnotationAwareOrderComparator.sort(allListeners);
+		// 将支持处理该事件类型的 listeners 放入 retriever 对应的监听器列表中
 		if (retriever != null && retriever.applicationListenerBeans.isEmpty()) {
 			retriever.applicationListeners.clear();
 			retriever.applicationListeners.addAll(allListeners);

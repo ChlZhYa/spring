@@ -93,6 +93,7 @@ public class GenericApplicationListenerAdapter implements GenericApplicationList
 	}
 
 
+	// 解析 listener 关注的事件类型
 	@Nullable
 	private static ResolvableType resolveDeclaredEventType(ApplicationListener<ApplicationEvent> listener) {
 		ResolvableType declaredEventType = resolveDeclaredEventType(listener.getClass());
