@@ -16,7 +16,7 @@
 
 package org.springframework.core.env;
 
-/**
+/** 实现了该接口的类存在 environment 类型的属性，通过 getEnvironment 方法取得。
  * Interface indicating a component that contains and exposes an {@link Environment} reference.
  *
  * <p>All Spring application contexts are EnvironmentCapable, and the interface is used primarily

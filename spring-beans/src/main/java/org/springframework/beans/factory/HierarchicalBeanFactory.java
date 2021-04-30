@@ -19,6 +19,7 @@ package org.springframework.beans.factory;
 import org.springframework.lang.Nullable;
 
 /**
+ * 支撑实现多层嵌套容器
  * Sub-interface implemented by bean factories that can be part
  * of a hierarchy.
  *

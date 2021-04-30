@@ -123,16 +123,19 @@ public final class SpringFactoriesLoader {
 	}
 
 	private static Map<String, List<String>> loadSpringFactories(@Nullable ClassLoader classLoader) {
+		//缓存
 		MultiValueMap<String, String> result = cache.get(classLoader);
 		if (result != null) {
 			return result;
 		}
-
+		// 利用 SPI 机制加载指定接口的实现类
 		try {
+			// 类加载器加载当前 classpath 下所有 jar 包中的 spring.factories 文件
 			Enumeration<URL> urls = (classLoader != null ?
 					classLoader.getResources(FACTORIES_RESOURCE_LOCATION) :
 					ClassLoader.getSystemResources(FACTORIES_RESOURCE_LOCATION));
 			result = new LinkedMultiValueMap<>();
+			//遍历每个文件，将其中的键值对放入到链表中
 			while (urls.hasMoreElements()) {
 				URL url = urls.nextElement();
 				UrlResource resource = new UrlResource(url);
@@ -144,6 +147,7 @@ public final class SpringFactoriesLoader {
 					}
 				}
 			}
+			//放入缓存中，不用二次加载
 			cache.put(classLoader, result);
 			return result;
 		}

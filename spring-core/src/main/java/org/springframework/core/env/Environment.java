@@ -17,6 +17,9 @@
 package org.springframework.core.env;
 
 /**
+ *
+ * IOC 容器的运行环境，包括 Profile 与 Properties 两部分。
+ *
  * Interface representing the environment in which the current application is running.
  * Models two key aspects of the application environment: <em>profiles</em> and
  * <em>properties</em>. Methods related to property access are exposed via the

@@ -84,6 +84,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 
 /**
+ * 模板方法设计模式，由具体的子类实现抽象方法
  * Abstract implementation of the {@link org.springframework.context.ApplicationContext}
  * interface. Doesn't mandate the type of storage used for configuration; simply
  * implements common context functionality. Uses the Template Method design pattern,
