@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+group 'org.springframework'
+version '5.1.21.BUILD-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile(project(":spring-context"))
+    // 编译时如果报错：找不到类InstrumentationSavingAgent，尝试在下面添加对 spring-instrument 的依赖
+//    compile(project(":spring-instrument"))
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
