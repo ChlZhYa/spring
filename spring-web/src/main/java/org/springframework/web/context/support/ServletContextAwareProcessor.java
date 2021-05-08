@@ -104,6 +104,7 @@ public class ServletContextAwareProcessor implements BeanPostProcessor {
 
 	@Override
 	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+		// 将 servletContext 与 servletConfig 注入到组件中
 		if (getServletContext() != null && bean instanceof ServletContextAware) {
 			((ServletContextAware) bean).setServletContext(getServletContext());
 		}
