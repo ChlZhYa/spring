@@ -66,6 +66,7 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 /**
+ * 实现自动注入的 BeanFactoryPostProcessor
  * {@link org.springframework.beans.factory.config.BeanPostProcessor} implementation
  * that autowires annotated fields, setter methods and arbitrary config methods.
  * Such members to be injected are detected through a Java 5 annotation: by default,
@@ -415,9 +416,9 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 
 
 	private InjectionMetadata findAutowiringMetadata(String beanName, Class<?> clazz, @Nullable PropertyValues pvs) {
-		// Fall back to class name as cache key, for backwards compatibility with custom callers.
+		// 一般使用 beanName 作为缓存 Key
 		String cacheKey = (StringUtils.hasLength(beanName) ? beanName : clazz.getName());
-		// Quick check on the concurrent map first, with minimal locking.
+		// DCL 保证线程安全
 		InjectionMetadata metadata = this.injectionMetadataCache.get(cacheKey);
 		if (InjectionMetadata.needsRefresh(metadata, clazz)) {
 			synchronized (this.injectionMetadataCache) {
@@ -426,6 +427,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 					if (metadata != null) {
 						metadata.clear(pvs);
 					}
+					// 构建自动装配的 metadata
 					metadata = buildAutowiringMetadata(clazz);
 					this.injectionMetadataCache.put(cacheKey, metadata);
 				}
@@ -441,6 +443,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 		do {
 			final List<InjectionMetadata.InjectedElement> currElements = new ArrayList<>();
 
+			// 循环获取类上的属性，并判断是否有 @Autowired/@Value/@Inject 等注入类注解
 			ReflectionUtils.doWithLocalFields(targetClass, field -> {
 				AnnotationAttributes ann = findAutowiredAnnotation(field);
 				if (ann != null) {
@@ -455,6 +458,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 				}
 			});
 
+			// 循环获取方法上的注解，并判断是否有需要依赖的项
 			ReflectionUtils.doWithLocalMethods(targetClass, method -> {
 				Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(method);
 				if (!BridgeMethodResolver.isVisibilityBridgeMethodPair(method, bridgedMethod)) {
@@ -481,6 +485,7 @@ public class AutowiredAnnotationBeanPostProcessor extends InstantiationAwareBean
 			});
 
 			elements.addAll(0, currElements);
+			// 从子类开始向父类处理
 			targetClass = targetClass.getSuperclass();
 		}
 		while (targetClass != null && targetClass != Object.class);

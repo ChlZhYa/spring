@@ -56,6 +56,7 @@ class ApplicationListenerDetector implements DestructionAwareBeanPostProcessor, 
 	}
 
 
+	// 保存 singleton 类型的 BeanName
 	@Override
 	public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
 		this.singletonNames.put(beanName, beanDefinition.isSingleton());
