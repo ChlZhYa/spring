@@ -189,7 +189,7 @@ public abstract class AbstractGenericContextLoader extends AbstractContextLoader
 		AnnotationConfigUtils.registerAnnotationConfigProcessors(context);
 		customizeContext(context);
 
-		context.refresh();
+		context. refresh();
 		context.registerShutdownHook();
 
 		return context;

@@ -70,6 +70,7 @@ public class JdkRegexpMethodPointcut extends AbstractRegexpMethodPointcut {
 	/**
 	 * Returns {@code true} if the {@link Pattern} at index {@code patternIndex}
 	 * matches the supplied candidate {@code String}.
+	 * 通过正则表达式判断方法是否符合为切入点
 	 */
 	@Override
 	protected boolean matches(String pattern, int patternIndex) {
