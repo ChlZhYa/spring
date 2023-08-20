@@ -66,8 +66,10 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 	 */
 	public AnnotationConfigApplicationContext() {
 		StartupStep createAnnotatedBeanDefReader = this.getApplicationStartup().start("spring.context.annotated-bean-reader.create");
+		// BeanDefinitionReader
 		this.reader = new AnnotatedBeanDefinitionReader(this);
 		createAnnotatedBeanDefReader.end();
+		// 构造 Scanner，用于扫描 ClassPath 下的 Bean
 		this.scanner = new ClassPathBeanDefinitionScanner(this);
 	}
 

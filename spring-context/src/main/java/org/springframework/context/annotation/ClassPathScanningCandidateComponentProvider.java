@@ -313,6 +313,7 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 			return addCandidateComponentsFromIndex(this.componentsIndex, basePackage);
 		}
 		else {
+			// 扫描
 			return scanCandidateComponents(basePackage);
 		}
 	}
@@ -416,8 +417,10 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	private Set<BeanDefinition> scanCandidateComponents(String basePackage) {
 		Set<BeanDefinition> candidates = new LinkedHashSet<>();
 		try {
+			// 拼接扫描路径，扫描 classpath 下的所有 class 文件
 			String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX +
 					resolveBasePackage(basePackage) + '/' + this.resourcePattern;
+			// 获取所有 class 文件对应 Resource
 			Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath);
 			boolean traceEnabled = logger.isTraceEnabled();
 			boolean debugEnabled = logger.isDebugEnabled();
@@ -426,10 +429,13 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 					logger.trace("Scanning " + resource);
 				}
 				try {
+					// 使用 ASM 获取类的元数据读取器
 					MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource);
 					if (isCandidateComponent(metadataReader)) {
+						// 通过判断，当前类是 Component，则构造对应的 BeanDefinition
 						ScannedGenericBeanDefinition sbd = new ScannedGenericBeanDefinition(metadataReader);
 						sbd.setSource(resource);
+						// 再判断当前对象是否是抽象类/接口类等，再过滤一次
 						if (isCandidateComponent(sbd)) {
 							if (debugEnabled) {
 								logger.debug("Identified candidate component class: " + resource);
@@ -485,13 +491,16 @@ public class ClassPathScanningCandidateComponentProvider implements EnvironmentC
 	 * @return whether the class qualifies as a candidate component
 	 */
 	protected boolean isCandidateComponent(MetadataReader metadataReader) throws IOException {
+		// 判断当前类是否被 excludeFilter 包括
 		for (TypeFilter tf : this.excludeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
 				return false;
 			}
 		}
+		// 判断当前类是否被 includeFilter 包括，Spring 中默认会加入两个 includeFilters，分别为 Component 和 ManagedBean
 		for (TypeFilter tf : this.includeFilters) {
 			if (tf.match(metadataReader, getMetadataReaderFactory())) {
+				// 再判断当前类是否被 @Condition 注解标记
 				return isConditionMatch(metadataReader);
 			}
 		}
