@@ -132,6 +132,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 	private ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
 
 	/** Whether to automatically try to resolve circular references between beans. */
+	// 是否支持循环依赖。SpringBoot 2.6 开始默认不支持循环依赖
 	private boolean allowCircularReferences = true;
 
 	/**
@@ -579,6 +580,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 			instanceWrapper = this.factoryBeanInstanceCache.remove(beanName);
 		}
 		if (instanceWrapper == null) {
+			// 通过构造方法构建实例
 			instanceWrapper = createBeanInstance(beanName, mbd, args);
 		}
 		Object bean = instanceWrapper.getWrappedInstance();
@@ -591,6 +593,8 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 		synchronized (mbd.postProcessingLock) {
 			if (!mbd.postProcessed) {
 				try {
+					// 扩展点：MergedBeanDefinitionPostProcessor，对 BeanDefinition 进行处理
+					// 例如 AutowiredAnnotationBeanPostProcessor，针对 @Autowired 标记的方法和属性，会在这里寻找到所有的注入点
 					applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
 				}
 				catch (Throwable ex) {
@@ -610,13 +614,16 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 				logger.trace("Eagerly caching bean '" + beanName +
 						"' to allow for resolving potential circular references");
 			}
+			// 将对象放到三级缓存中
 			addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));
 		}
 
 		// Initialize the bean instance.
 		Object exposedObject = bean;
 		try {
+			// 填充属性
 			populateBean(beanName, mbd, instanceWrapper);
+			// 初始化 bean
 			exposedObject = initializeBean(beanName, exposedObject, mbd);
 		}
 		catch (Throwable ex) {
@@ -1796,10 +1803,12 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 
 		Object wrappedBean = bean;
 		if (mbd == null || !mbd.isSynthetic()) {
+			// 扩展点：初始化前处理逻辑 BeanPostProcessor::postProcessBeforeInitialization
 			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
 		}
 
 		try {
+			// 调用初始化方法
 			invokeInitMethods(beanName, wrappedBean, mbd);
 		}
 		catch (Throwable ex) {
@@ -1808,6 +1817,7 @@ public abstract class AbstractAutowireCapableBeanFactory extends AbstractBeanFac
 					beanName, "Invocation of init method failed", ex);
 		}
 		if (mbd == null || !mbd.isSynthetic()) {
+			// 扩展点：初始化后处理逻辑 BeanPostProcessor::postProcessAfterInitialization
 			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
 		}
 

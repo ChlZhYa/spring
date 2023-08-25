@@ -123,6 +123,7 @@ public class GenericApplicationContext extends AbstractApplicationContext implem
 	 */
 	public GenericApplicationContext(DefaultListableBeanFactory beanFactory) {
 		Assert.notNull(beanFactory, "BeanFactory must not be null");
+		// 容器启动第一步，创建一个 BeanFactory
 		this.beanFactory = beanFactory;
 	}
 

@@ -237,9 +237,11 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		return null;
 	}
 
+	// 提前 AOP
 	@Override
 	public Object getEarlyBeanReference(Object bean, String beanName) {
 		Object cacheKey = getCacheKey(bean.getClass(), beanName);
+		// 放入 AOP 集合中，当 BeanPostProcessor 的 postProcessAfterInitialization 方法执行时会用该集合判断是否还需要 AOP
 		this.earlyProxyReferences.put(cacheKey, bean);
 		return wrapIfNecessary(bean, beanName, cacheKey);
 	}
@@ -281,6 +283,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 	}
 
 	/**
+	 * 初始化后进行创建代理
 	 * Create a proxy with the configured interceptors if the bean is
 	 * identified as one to proxy by the subclass.
 	 * @see #getAdvicesAndAdvisorsForBean
@@ -338,6 +341,7 @@ public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
 		}
 
 		// Create proxy if we have advice.
+		// 判断当前 Bean 是否需要 AOP
 		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 		if (specificInterceptors != DO_NOT_PROXY) {
 			this.advisedBeans.put(cacheKey, Boolean.TRUE);
