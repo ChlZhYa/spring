@@ -79,15 +79,20 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);
 
 	/** Cache of singleton factories: bean name to ObjectFactory. */
+	// 三级缓存。
+	// 存放原始对象，如果循环依赖中不需要进行 AOP 时，则直接从这里获取原始对象。
+	// 当循环依赖的对象需要 AOP 时，生成的代理对象的 target 属性需要指向原始对象。
 	private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(16);
 
 	/** Cache of early singleton objects: bean name to bean instance. */
+	// 没有经过完整声明周期的 Bean，实际上是构建方法执行后的原始对象或者 AOP 生成的代理对象，属性还没有填充。用于解决循环依赖
 	private final Map<String, Object> earlySingletonObjects = new ConcurrentHashMap<>(16);
 
 	/** Set of registered singletons, containing the bean names in registration order. */
 	private final Set<String> registeredSingletons = new LinkedHashSet<>(256);
 
 	/** Names of beans that are currently in creation. */
+	// 记录正在创建中的 Bean，用于处理循环依赖
 	private final Set<String> singletonsCurrentlyInCreation =
 			Collections.newSetFromMap(new ConcurrentHashMap<>(16));
 
@@ -180,9 +185,13 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 	@Nullable
 	protected Object getSingleton(String beanName, boolean allowEarlyReference) {
 		// Quick check for existing instance without full singleton lock
+		// 首先从一级缓存中判断是否已经有完整对象
 		Object singletonObject = this.singletonObjects.get(beanName);
+		// 如果没有完整实例并且在 beanName 当前正在创建中
 		if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
+			// 尝试从二级缓存中获取半成品 Bean
 			singletonObject = this.earlySingletonObjects.get(beanName);
+			// 如果二级缓存中也没有
 			if (singletonObject == null && allowEarlyReference) {
 				synchronized (this.singletonObjects) {
 					// Consistent creation of early reference within full singleton lock
@@ -190,9 +199,11 @@ public class DefaultSingletonBeanRegistry extends SimpleAliasRegistry implements
 					if (singletonObject == null) {
 						singletonObject = this.earlySingletonObjects.get(beanName);
 						if (singletonObject == null) {
+							// 获取三级缓存中事先存入的 Lambda 表达式，执行后可以获得原始对象
 							ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
 							if (singletonFactory != null) {
 								singletonObject = singletonFactory.getObject();
+								// 将创建出来的对象放入到二级缓存中，同样将三级缓存删除，这样可以避免对象的重复创建
 								this.earlySingletonObjects.put(beanName, singletonObject);
 								this.singletonFactories.remove(beanName);
 							}
