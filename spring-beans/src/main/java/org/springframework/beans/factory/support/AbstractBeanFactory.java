@@ -275,6 +275,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			}
 
 			// Check if bean definition exists in this factory.
+			// 如果当前 BeanFactory 中没有该 beanName 对应的 BeanDefinition，则从 parentBeanFactory 中获取 BeanDefinition
 			BeanFactory parentBeanFactory = getParentBeanFactory();
 			if (parentBeanFactory != null && !containsBeanDefinition(beanName)) {
 				// Not found -> check parent.
@@ -306,17 +307,23 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				if (requiredType != null) {
 					beanCreation.tag("beanType", requiredType::toString);
 				}
+				// 获取 beanName 对应的 BeanDefinition，这里是从 mergedBeanDefinitions 中获取
 				RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
+				// 检查 BeanDefinition 定义是否符合创建条件
+				// 目前主要判断 BeanDefinition 是否有 abstract 属性（abstract 类型的 BeanDefinition 无法创建）
 				checkMergedBeanDefinition(mbd, beanName, args);
 
 				// Guarantee initialization of beans that the current bean depends on.
+				// dependsOn 注解处理
 				String[] dependsOn = mbd.getDependsOn();
 				if (dependsOn != null) {
 					for (String dep : dependsOn) {
+						// 判断 dependsOn 注解是否出现了循环依赖
 						if (isDependent(beanName, dep)) {
 							throw new BeanCreationException(mbd.getResourceDescription(), beanName,
 									"Circular depends-on relationship between '" + beanName + "' and '" + dep + "'");
 						}
+						// 注册依赖关系
 						registerDependentBean(dep, beanName);
 						try {
 							getBean(dep);
@@ -329,6 +336,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				}
 
 				// Create bean instance.
+				// 单例 Bean 创建
 				if (mbd.isSingleton()) {
 					sharedInstance = getSingleton(beanName, () -> {
 						try {
@@ -350,6 +358,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					Object prototypeInstance = null;
 					try {
 						beforePrototypeCreation(beanName);
+						// 原型 Bean 则直接每次都创建
 						prototypeInstance = createBean(beanName, mbd, args);
 					}
 					finally {
@@ -1414,6 +1423,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 					BeanDefinition pbd;
 					try {
 						String parentBeanName = transformedBeanName(bd.getParentName());
+						// 递归寻找根 BeanDefinition
 						if (!beanName.equals(parentBeanName)) {
 							pbd = getMergedBeanDefinition(parentBeanName);
 						}
@@ -1434,7 +1444,9 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 								"Could not resolve parent bean definition '" + bd.getParentName() + "'", ex);
 					}
 					// Deep copy with overridden values.
+					// 从 parentBeanDefinition 中构造一个新的 RootBeanDefinition
 					mbd = new RootBeanDefinition(pbd);
+					// 之后再用自定义的属性覆盖 parentBeanDefinition 中定义的属性
 					mbd.overrideFrom(bd);
 				}
 
@@ -1454,6 +1466,8 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 				// Cache the merged bean definition for the time being
 				// (it might still get re-merged later on in order to pick up metadata changes)
 				if (containingBd == null && isCacheBeanMetadata()) {
+					// 合并完成之后将 RootBeanDefinition 放入 mergedBeanDefinitions 中。
+					// 后续Spring会从该集合中获取 BeanDefinition 并实例化 Bean。
 					this.mergedBeanDefinitions.put(beanName, mbd);
 				}
 			}
@@ -1540,6 +1554,7 @@ public abstract class AbstractBeanFactory extends FactoryBeanRegistrySupport imp
 			throws CannotLoadBeanClassException {
 
 		try {
+			// 判断当前 BeanDefinition 对象的 beanClass 是否已经是 Class 对象
 			if (mbd.hasBeanClass()) {
 				return mbd.getBeanClass();
 			}

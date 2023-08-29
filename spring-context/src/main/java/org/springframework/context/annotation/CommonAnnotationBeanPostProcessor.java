@@ -387,6 +387,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 					}
 					currElements.add(new EjbRefElement(field, field, null));
 				}
+				// @Resource 注解处理
 				else if (field.isAnnotationPresent(Resource.class)) {
 					if (Modifier.isStatic(field.getModifiers())) {
 						throw new IllegalStateException("@Resource annotation is not supported on static fields");
@@ -539,6 +540,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 		if (factory instanceof AutowireCapableBeanFactory) {
 			AutowireCapableBeanFactory beanFactory = (AutowireCapableBeanFactory) factory;
 			DependencyDescriptor descriptor = element.getDependencyDescriptor();
+			// 如果 @Resource 没有指定 beanName,则会先使用 fieldName 查找 Bean
 			if (this.fallbackToDefaultTypeMatch && element.isDefaultName && !factory.containsBean(name)) {
 				autowiredBeanNames = new LinkedHashSet<>();
 				resource = beanFactory.resolveDependency(descriptor, requestingBeanName, autowiredBeanNames, null);
@@ -643,6 +645,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 			String resourceName = resource.name();
 			Class<?> resourceType = resource.type();
 			this.isDefaultName = !StringUtils.hasLength(resourceName);
+			// 如果 @Resource 注解没有指定 beanName，则使用 field 的 name，或者 setter 方法中的 name
 			if (this.isDefaultName) {
 				resourceName = this.member.getName();
 				if (this.member instanceof Method && resourceName.startsWith("set") && resourceName.length() > 3) {
@@ -653,6 +656,7 @@ public class CommonAnnotationBeanPostProcessor extends InitDestroyAnnotationBean
 				resourceName = embeddedValueResolver.resolveStringValue(resourceName);
 			}
 			if (Object.class != resourceType) {
+				// 判断指定的 type 是否与字段的 type 匹配
 				checkResourceType(resourceType);
 			}
 			else {
