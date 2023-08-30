@@ -74,13 +74,14 @@ final class PostProcessorRegistrationDelegate {
 
 		// Invoke BeanDefinitionRegistryPostProcessors first, if any.
 		Set<String> processedBeans = new HashSet<>();
-		// 默认情况下，beanFactoryPostProcessors 为空
-		// 项目中的 BeanFactoryPostProcessor 有两种类型，一种是普通的 BeanFactoryPostProcessor，另一种是实现了 BeanDefinitionRegistryPostProcessor
 		if (beanFactory instanceof BeanDefinitionRegistry) {
 			BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
 			List<BeanFactoryPostProcessor> regularPostProcessors = new ArrayList<>();
 			List<BeanDefinitionRegistryPostProcessor> registryProcessors = new ArrayList<>();
 
+			// beanFactoryPostProcessors 一般情况下都为空，除非手动调用容器的 addBeanFactoryPostProcessor方法添加 Processor
+			// 而对于 beanFactoryPostProcessors 来说，会包含普通 BeanFactoryPostProcessor 和 BeanDefinitionRegistryPostProcessor
+			// 对于其中的 BeanDefinitionRegistryPostProcessor 类型，则会执行 postProcessBeanDefinitionRegistry 方法
 			for (BeanFactoryPostProcessor postProcessor : beanFactoryPostProcessors) {
 				if (postProcessor instanceof BeanDefinitionRegistryPostProcessor) {
 					BeanDefinitionRegistryPostProcessor registryProcessor =
@@ -148,6 +149,7 @@ final class PostProcessorRegistrationDelegate {
 			}
 
 			// Now, invoke the postProcessBeanFactory callback of all processors handled so far.
+			// 调用所有 BeanFactoryPostProcessors 的 postProcessBeanFactory 方法
 			invokeBeanFactoryPostProcessors(registryProcessors, beanFactory);
 			// 调用 ConfigurableListableBeanFactory 中手动添加的 BeanFactoryPostProcessor 的 postProcessBeanFactory 方法
 			invokeBeanFactoryPostProcessors(regularPostProcessors, beanFactory);
