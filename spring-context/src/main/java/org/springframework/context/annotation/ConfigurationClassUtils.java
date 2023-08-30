@@ -156,6 +156,7 @@ abstract class ConfigurationClassUtils {
 		}
 
 		// Any of the typical annotations found?
+		// 如果被 Component，ComponentScan,Import,ImportResource，则设置为 LITE
 		for (String indicator : candidateIndicators) {
 			if (metadata.isAnnotated(indicator)) {
 				return true;
@@ -163,6 +164,7 @@ abstract class ConfigurationClassUtils {
 		}
 
 		// Finally, let's look for @Bean methods...
+		// 如果有方法有 @Bean 注解，同样返回 true
 		return hasBeanMethods(metadata);
 	}
 

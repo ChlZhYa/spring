@@ -145,15 +145,18 @@ class ConfigurationClassBeanDefinitionReader {
 			this.importRegistry.removeImportingClass(configClass.getMetadata().getClassName());
 			return;
 		}
-
+		// 如果配置类是被 @Import 引入的，则生成它的 BeanDefinition
 		if (configClass.isImported()) {
 			registerBeanDefinitionForImportedConfigurationClass(configClass);
 		}
 		for (BeanMethod beanMethod : configClass.getBeanMethods()) {
+			// 解析 @Bean 方法，生成对应的 BeanDefinition
 			loadBeanDefinitionsForBeanMethod(beanMethod);
 		}
 
+		// 解析 @ImportResource 指定的文件，扫描其中的 Bean，生成 BeanDefinition
 		loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
+		// 处理 ImportBeanDefinitionRegistrar，调用 registerBeanDefinition 方法
 		loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
 	}
 
